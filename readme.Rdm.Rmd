@@ -1,0 +1,2 @@
+*This course is about data science*
+*here is a link to my repository: https://mannerheim.github.io/IODS-project/*

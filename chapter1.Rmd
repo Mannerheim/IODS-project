@@ -1,4 +1,9 @@
+# Header 1
+# About the project a short description
 
-# About the project
+*Hopefully this course is very useful!*
 
-*Write a short description about the course and add a link to your github repository here. This is an R markdown (.Rmd) file so you can use R markdown syntax. See the 'Useful links' page in the mooc area (chapter 1) for instructions.*
+*Here is my my short description of the course and my link.*
+*Link: github.com/mannerheim/IODS-project .*
+
+
