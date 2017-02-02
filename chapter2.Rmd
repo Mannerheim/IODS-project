@@ -10,47 +10,18 @@
  #Johdatus yhteiskuntatilastotieteeseen, syksy 2014
 (Introduction to Social Statistics, fall 2014 - in Finnish),
 international survey of Approaches to Learning from http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-data.txt
-The following code does this and creates an analysis dataset with the variables gender, age, attitude, deep, stra, surf and points by combining questions in the learning2014 data and excludes observations where the exam points variable is zero.
+Dataset contains the variables gender, age, attitude, deep, stra, surf and points by combining questions in the learning2014 data and excludes observations where the exam points variable is zero.
 
-
-```{r} 
-learning2014 <- read.table("http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-data.txt", sep="\t", header=TRUE)
-str(learning2014)
-install.packages("dplyr")
-library(dplyr)
-deep_questions <- c("D03", "D11", "D19", "D27", "D07", "D14", "D22", "D30","D06",  "D15", "D23", "D31")
-surface_questions <- c("SU02","SU10","SU18","SU26", "SU05","SU13","SU21","SU29","SU08","SU16","SU24","SU32")
-strategic_questions <- c("ST01","ST09","ST17","ST25","ST04","ST12","ST20","ST28")
-deep_columns <- select(learning2014, one_of(deep_questions))
-learning2014$deep <- rowMeans(deep_columns)
-
-
-surface_columns <- select(learning2014, one_of(surface_questions))
-learning2014$surf <- rowMeans(surface_columns)
-
-strategic_columns <- select(learning2014, one_of(strategic_questions))
-learning2014$stra <- rowMeans(strategic_columns)
-
-keep_columns <- c("gender","Age","Attitude","deep","stra","surf","Points")
-learning2_2014 <- select(learning2014, one_of(keep_columns))
-str(learning2_2014)
-
-learning2_2014 <- subset(learning2_2014, Points>0) #chooses the set within in the set by Points above 0
-str(learning2_2014)
-getwd()
-
-setwd("IODS-project/data/")
-?write.csv  
-write.csv(learning2_2014, file = "data1.csv") 
-```
 Deep learning questions are like this: " I usually set out to understand for myself the meaning of what we have to learn." 
 Surface learning exercises are like this: " I find I have to concentrate on just memorising a good deal of what I have to learn."
 Strategic learning exercies are like this: "  I think I'm quite systematic and organised when it comes to revising for exams."
 
-The actual data looks like this: 
 ```{r} 
-str(learning2_2014)
+learning2014 <- read.csv("/Users/Tuomassoila/IODS-project/data/data1.csv")
+learning2014
+str(learning2014)
 ```
+
 
 The dataset has 166 observations and 7 variables.
 
@@ -60,14 +31,14 @@ Then I continued to the actual analysis exercise
 
 I read the data from the csv filed produced in the previous exercise and printed the summary
 
-```{r} 
-learning2014 <- read.csv("/Users/Tuomassoila/IODS-project/data/data1.csv")
-str(learning2014) 
-```
-Then I printed the overview of the dataset 
-```{r} 
 
-library(ggplot2)
+learning2014 <- read.csv("/Users/Tuomassoila/IODS-project/data/data1.csv")
+#str(learning2014) 
+
+Then I printed the overview of the dataset 
+
+```{r} 
+library(ggplot2);
 library(GGally)
 #draws fancy scatter plot matrix
 str(learning2014$age)
@@ -93,7 +64,8 @@ my_model <- lm(Points ~ stra + Attitude + Age, data = learning2014 )
 
 summary(my_model) #prings the summary of the multiple linear regression analysis
 ```
-With the above results. 
+
+With the results that Age is not statistically significant. 
 
 Strategic learning contributes to explaining Points gotten so it will stay in the model. So does Attitude but age's affect is not statictically significant so It will be removed. 
 ```{r} 

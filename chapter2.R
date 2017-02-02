@@ -2,8 +2,7 @@ learning2014 <- read.csv("/Users/Tuomassoila/IODS-project/data/data1.csv")
 learning2014
 str(learning2014)
 
-install.packages("ggplot2")
-install.packages("GGally")
+
 library(ggplot2)
 library(GGally)
 
@@ -12,7 +11,7 @@ p <- ggpairs(learning2014, mapping = aes(col = gender, alpha = 0.3), lower =  li
 p
 
 
-my_model <- lm(Points ~ stra + Attitude, data = learning2014 )
+my_model <- lm(Points ~ stra + Attitude + Age, data = learning2014 )
 summary(my_model)
 
 
