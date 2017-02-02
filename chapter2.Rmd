@@ -2,9 +2,8 @@
 
 # section 1
 
-*Data wranling and analysis of student 2014*
+*Analysis of student 2014*
 
- 
 
 - First I produced the needed subset of the original data.
  #Johdatus yhteiskuntatilastotieteeseen, syksy 2014
@@ -18,7 +17,6 @@ Strategic learning exercies are like this: "  I think I'm quite systematic and o
 
 ```{r} 
 learning2014 <- read.csv("/Users/Tuomassoila/IODS-project/data/data1.csv")
-learning2014
 str(learning2014)
 ```
 
@@ -33,22 +31,17 @@ I read the data from the csv filed produced in the previous exercise and printed
 
 
 learning2014 <- read.csv("/Users/Tuomassoila/IODS-project/data/data1.csv")
-#str(learning2014) 
 
-Then I printed the overview of the dataset 
+Then I printed the graphical overview of the dataset 
 
 ```{r} 
 library(ggplot2);
 library(GGally)
 #draws fancy scatter plot matrix
-str(learning2014$age)
+str(learning2014$Age)
 p <- ggpairs(learning2014, mapping = aes(col = gender, alpha = 0.3), lower =  list(combo =wrap("facethist",bins =20)))
 p
 ```
-![Caption](/Users/Tuomassoila/IODS-project/chapter2images/overview.png)
-
-Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (3 points)
-
 
 
 None of the variables above have a big correlation between each other and the biggest correlation is not above 0.1. 
@@ -84,6 +77,8 @@ Then I produced the following diagnostic plots:Residuals vs Fitted values, Norma
 par(mfrow = c(2,2)) # sets the plot in same image
 plot(my_model, which=c(1,2,5)) #draws the plot number: 1,2,5 bt which command from the plot list
 ```
+
+
 When the normal Q-Q plot is examined we can see that the normality there is some doubt about the normality since the lower and upper part does fit really well on the linear line. 
 
 On the residuals vs. fitted the distribution is reasonably random so the size of the errors do not depend on the explanatory variables. 
