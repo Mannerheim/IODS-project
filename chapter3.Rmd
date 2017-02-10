@@ -1,0 +1,158 @@
+# Chapter 3 code and analysis
+
+## section 2
+
+Reading the data  and printing colnames and str. 
+```{r}
+alc <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/alc.txt ", sep = "," , header=TRUE)
+
+colnames(alc)
+str(alc)
+
+```
+The data consist of two separate datasets that have been combined to one. Attributes for both student-mat.csv (Math course) and student-por.csv (Portuguese language course) are printed above. It has 35 variables and 382 observations. Such variables as: sex, family size, age...
+
+## Section 3 
+Relationship between chosen variables and alcohol consumption
+
+I have chosen four variables: famrel - quality of family relationships, age, studytime - weekly study time and G3 - final grade. My hypothesis is that all of these have an affect on high alcohol consumption, so that people with lower family relations quality drink more = negative effect, older students drink more = positive effect, children who study less  drink more, and student with lower grades drink more. 
+
+## section 4 
+I explored Numerically and graphically the distributions of your chosen variables and their relationships with alcohol consumption. I started by producing box plots with the explanatory variable on the x-axis and high_use on y-axis.
+
+```{r }
+library(ggplot2)
+par(mfrow = c(2,2)) # adds the plots to 2 by 2 frame. 
+
+# high_use and famrel explored
+g1 <- ggplot(alc, aes(x = high_use, y = famrel ))
+g1 + geom_boxplot() + ylab("family relationship quality")
+#high_use and age explored
+g2 <- ggplot(alc, aes(x = high_use, y = age))
+g2 + geom_boxplot() + ylab("age")
+#high_use and studytime explored
+g3 <- ggplot(alc, aes(x= high_use, y=studytime))
+g3 + geom_boxplot() + ylab("studytime")
+#high_use and final grade explored
+g4 <- ggplot(alc, aes(x=high_use, y = G3))
+g4 + geom_boxplot()+ylab("final grade")
+
+```
+I then produced the bar plot for the chosen variables. 
+
+It seems that students with better family relationship quality drink less than the ones with lower quality but the averages are the same so the distributions are a bit tricky. This somewhat corresponds with my hypothesis.
+
+As predicted older students drink more than young students. 
+
+Longer studytime means also less drinking but again the means are the same. So the distributions are tricky. 
+
+Students with higher final grade drink less than students with lower grade. But the difference is small. Corresponds with the hypothesis.
+
+
+```{r }
+library(tidyr); library(dplyr); library(ggplot2)
+par(mfrow = c(2,2)) # adds the plots to 2 by 2 frame. 
+
+ggplot(data = alc, aes(famrel)) +geom_bar()
+ggplot(data = alc, aes(age)) +geom_bar()
+ggplot(data = alc, aes(studytime)) +geom_bar()
+ggplot(data = alc, aes(G3)) +geom_bar()
+```
+Then I produced the summaries of other groups. These back up the hypothesis. Group with higher studytime had we not consuming high amounts of alcohol, younger students consumed less alcohol, students consuming more alcohol had shorter studytime and students with higher grade consumed less alcohol.
+
+```{r}
+# access the tidyverse libraries dplyr and ggplot2
+library(dplyr); library(ggplot2)
+alc %>% group_by(high_use) %>% summarise(count = n(), mean_study = mean(famrel) )
+alc %>% group_by(high_use) %>% summarise(count = n(), age = mean(age))
+alc %>% group_by(high_use) %>% summarise(count = n(), mean_study = mean(studytime) )
+alc %>% group_by(high_use) %>% summarise(count = n(), mean_grade = mean(G3) )
+
+```
+##Section 5
+
+Then I produced the fitted logistic regression model with the variables chosen earlier. 
+```{r}
+
+# find the model with glm()
+m <- glm(high_use ~ age + famrel+ studytime + G3, data = alc, family = "binomial")
+
+# print out a summary of the model
+summary(m)
+
+# print out the coefficients of the model
+coef(m)
+
+```
+From the output we can see that age, famrel and studytime are statistically significant with P values less than 0.05. From this we can conclude that these variables have predictive power over high alcohol consumption. But Final grade is not statistically significant. Aging increases possibility of more alcohol consumption (0.21512), better family relations lower the odds of high alcohol consumption (-0.29036) and longer studytime has the same effect (-0.60967 ).
+
+
+Odds rations: 
+I produced the odd ratios for the model. 
+```{r}
+m <- glm(high_use ~ age + famrel+ studytime + G3, data = alc, family = "binomial")
+# compute odds ratios (OR)
+OR <- coef(m) %>% exp
+
+# compute confidence intervals (CI)
+CI <- confint(m)%>% exp
+
+# print out the odds ratios with their confidence intervals
+cbind(OR, CI)
+
+```
+From this we can conclude that age has positive affect on alcohol consumption since the Odds ratio is higher than 1. Family relations have a negative effect on alcohol consumption and so does studytime. Age seems to have a positive effect but it is not statistically significant ( 1 fits in the confidence interval 0.957469303 1.0593549). 
+
+
+## section 6
+
+Now I will try if my model will predict correct answers against the actual data. I produced the confusion matrix, which according to Wikipedia works like this: "Each column of the matrix represents the instances in a predicted class while each row represents the instances in an actual class (or vice versa)."
+
+
+```{r}
+library(dplyr)
+
+# fit the model
+m <- glm(high_use ~ age + famrel+ studytime, data = alc, family = "binomial")
+
+# predict() the probability of high_use
+probabilities <- predict(m, type = "response")
+
+# add the predicted probabilities to 'alc'
+alc <- mutate(alc, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc <- mutate(alc, prediction = probability>0.5)
+
+# tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction)
+
+```
+From the confusion matrix we can gather that my model produced 258 correct Falses for high alcohol consumption, 12 false falses for low non-high alcohol consumption. 101 false True occurrences of high alcohol consumption and 11 true cases of high alcohol consumption. 
+
+Then I calculated the training error for my model.
+And if understood correctly tested it against just guessing that everyone has low alcohol consumption and the results seem that guessing works better.
+
+
+```{r}
+# (mean prediction error)
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# loss function called with the desired attributes
+loss_func(class = alc$high_use, prob = alc$probability)
+loss_func(class = alc$high_use, prob = 0)
+
+
+```
+## section 7
+I calculated the 10-fold cross validation on my model and the prediction error but not by much ( original = 0.2958115 and 10-fold = 0.2905759)
+```{r}
+library(boot)
+cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
+
+# average number of wrong predictions in the cross validation
+cv$delta[1]
+```
