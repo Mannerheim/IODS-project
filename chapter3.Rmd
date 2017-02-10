@@ -148,7 +148,7 @@ loss_func(class = alc$high_use, prob = 0)
 
 ```
 ## section 7
-I calculated the 10-fold cross validation on my model and the prediction error but not by much ( original = 0.2958115 and 10-fold = 0.2905759)
+I calculated the 10-fold cross validation on my model and the prediction error but not by much ( original = 0.2958115 and 10-fold = 0.2905759) 
 ```{r}
 library(boot)
 cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
