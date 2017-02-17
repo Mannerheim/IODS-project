@@ -2,48 +2,39 @@
 
 
 ## part 1 
-Create a new RMarkdown file and save it as an empty file named ‘chapter4.Rmd’. Then include the file as a child file in your ‘index.Rmd’ file. Perform the following analysis in the file you created.
+I created a new RMarkdown file and named it chapter4.Rmd  and included it as a child file in my index.Rmd. 
 
 ## part 2 
-Load the Boston data from the MASS package. Explore the structure and the dimensions of the data and describe the dataset briefly, assuming the reader has no previous knowledge of it. Details about the Boston dataset can be seen for example here. (1 point)
-
-Details abot the used data package can be seen here https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html . 
-The data describes the Housing Values in Suburbs of Boston
-The data has variables like this : crim = per capita crime rate by town, zn = proportion of residential land zoned for lots over 25,000 sq.ft, indus =proportion of non-retail business acres per town.
+I accessd the Boston data in MASS library. Details about the used data package can be seen here https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html . 
+The data describes the Housing Values in Suburbs of Boston. The data has variables like this : crim = per capita crime rate by town, zn = proportion of residential land zoned for lots over 25,000 sq.ft, indus =proportion of non-retail business acres per town. Complete list of variables is shown in the colnames output in below.
 
 ```{r}
 library(MASS)
 data("Boston")
 # explore the dataset
-str(Boston)
+colnames(Boston)
 summary(Boston)
-
 
 # plot matrix of the variables
 pairs(Boston)
 
 ```
 ## Part 3 
-Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (2 points)
+Below I have shown an graphical overview of the variables and summaries of the variables. I have also drawn the correlations between the variables. There seems to be at least strong correlations between crime and taxes, lstat (lower status of the population (percent) ) and zn ( proportion of residential land zoned for lots over 25,000 sq.ft.), nox( nitrogen oxides concentration (parts per 10 million)) and indus ( proportion of non-retail business acres per town), taxes and indus and tax ( ) and  rad (index of accessibility to radial highways). 
 
-Below I have shown graphical overview of the variables and summaries of the varables. I have also drawn the correlations between the variables. There seems to be at least strong correlations between crime and taxes, lstat (lower status of the population (percent) ) and zn ( proportion of residential land zoned for lots over 25,000 sq.ft.), nox( nitrogen oxides concentration (parts per 10 million)) and indus ( proportion of non-retail business acres per town), taxes and indus and tax ( ) and  rad (index of accessibility to radial highways). 
-
-The distributions of the variables do not seem to quite normally distributed. 
-
-
+The variables do not seem to quite normally distributed. 
 
 ```{r}
 library(tidyr); library(dplyr); library(ggplot2)
 
-# plot matrix of the variables
+# plots a glimpse of the variables
 glimpse(Boston)
 # use gather() to gather columns into key-value pairs and then glimpse() at the resulting data
-#gather(Boston) %>% glimpse
+gather(Boston) %>% glimpse
 
 # draw a bar plot of each variable
 gather(Boston) %>% ggplot(aes(value)) +geom_bar()+ facet_wrap("key", scales = "free")
 # drawing boxplots of each variable
-
 gather(Boston) %>% ggplot(aes(x = value, y = value)) +geom_boxplot()+ facet_wrap("key", scales = "free")
 # calculate the correlation matrix and round it
 cor_matrix<-cor(Boston) %>% round(digits=2)
@@ -53,13 +44,9 @@ cor_matrix
 
 ```
 ## part 4
+Below code standardises the data and prints out the summaries of the data. Then categorical variables are created of the crime rate in Boston dataset. Then the set is further divided into train and test set so that 80% of the set is in the training set. 
 
-Standardize the dataset and print out summaries of the scaled data. How did the variables change? Create a categorical variable of the crime rate in the Boston dataset (from the scaled crime rate). Use the quantiles as the break points in the categorical variable. Drop the old crime rate variable from the dataset. Divide the dataset to train and test sets, so that 80% of the data belongs to the train set. (2 points)
-
-Below code standardides the data and prints out the summaries of the data. Then categorical variables are created of the crime rate in Boston dataset. Then the set is further divided into train and test set so that 80% of the set is in the training set. 
-
-All the data is now divided around zero and there is the new variable crime with the classes: low","med_low", "med_high", "high"
-
+All the data is now divided around zero and there is the new variable crime with the classes: "low","med_low", "med_high", "high".
 
 ```{r }
 
@@ -114,8 +101,11 @@ train <- boston_scaled[ind,]
 test <- boston_scaled[-ind,]
 
 ```
+All the data is now divided around zero and there is the new variable crime with the classes: "low","med_low", "med_high", "high".
+
+
 ## part 5 
-Fit the linear discriminant analysis on the train set. Use the categorical crime rate as the target variable and all the other variables in the dataset as predictor variables. Draw the LDA (bi)plot. (3 points)
+I fitted the linear discriminant analysis on the train set. Then I used the categorical crime rate as the target variable and all other variables as prediction variables. Finally I drew the LDA biplot.  
 
 ```{r}
 # Doing the discriminant analysis using the crime as the target and all others as predictors
@@ -124,7 +114,7 @@ lda.fit <- lda(crime ~., data = train)
 lda.fit
 
 #Drawing the lda biplot with arrows 
-lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+lda.arrows <- function(x, myscale = 10, arrow_heads = 0.1, color = "purple", tex = 0.75, choices = c(1,2)){
   heads <- coef(x)
   arrows(x0 = 0, y0 = 0,
          x1= myscale * heads[,choices[1]],
@@ -140,11 +130,16 @@ plot(lda.fit, dimen = 2, col = classes, pch = classes)
 lda.arrows(lda.fit, myscale = 1 )
 
 ```
+
+In the LDA the linear discriminant 1 (LD1)  explain 94% of the variance between groups.  
+In the LDA biplot we have the classes in different colour and the variables in the middle. The direction and length of the arrow displays how the variable impacts the model and these are based on the coefficients. So as the Rad variable coefficient is quite big (2.97683720) it is clearly visible in the visualisation as well. 
+
+
 ## part 6 
-Save the crime categories from the test set and then remove the categorical crime variable from the test dataset. Then predict the classes with the LDA model on the test data. Cross tabulate the results with the crime categories from the test set. Comment on the results. (3 points)
+I saved the crime categories from the test set and removed the categorical crime variable from the test dataset. Then I predicted the classes with the LDA model on the test data. I cross tabulated the results with the crime categories on the test set. 
 
+The prediction seems to be reasonable. The predictions are partly quite accurate at least for high and fairly good for med_low class. For other classes the predictions are not as good with quite a lot of wrong predictions.
 
-The prediction seems to be reasonable. The predictions are partly quite accurate at least for high and fairly good for med_low class. For other classes the predictions are not as good with quite a lot of wrong predictions. 
 ```{r}
 #saving the correct classes from the test data 
 correct_classes <- test$crime
@@ -160,9 +155,8 @@ table(correct = correct_classes , predicted = lda.pred$class)
 
 ```
 ## part 7
-Reload the Boston dataset and standardize the dataset (we did not do this in the Datacamp exercises, but you should scale the variables to get comparable distances). Calculate the distances between the observations. Run k-means algorithm on the dataset. Investigate what is the optimal number of clusters and run the algorithm again. Visualize the clusters (for example with the pairs() or ggpairs() functions, where the clusters are separated with colors) and interpret the results. (4 points)
 
-I standardised the Boston dataset and ran the k-means algorithm on the the set. I visualised the clusters with the pairs function. It would seem that two clusters would an optimal solution in this case since the drop is the steepest at this point. 
+I standardised the Boston dataset and ran the k-means algorithm on the set. I visualised the clusters with the pairs function. It would seem that two clusters would an optimal solution in this case since the drop is the steepest at this point. Based on the pairs visualisation it seems that at least rad and tax are good discriminatory variables.
 ```{r}
 library(MASS)
 #accessing the data
@@ -172,8 +166,8 @@ boston_scaled <- scale(Boston)
 #calculating the euclidian distances of the observations.
 dist_eu <- dist(boston_scaled)
 
-#adding the max number of clusters 
-k_max <- 15
+#adding the max number of clusters first 15 and then 2 as this was the optimal. 
+k_max <- 2
 # calculating the total with sum of squares 
 twcss <- sapply(1:k_max, function(k){kmeans(dist_eu, k)$tot.withinss})
 
