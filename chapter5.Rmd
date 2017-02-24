@@ -113,9 +113,8 @@ library(tidyr)
 data("tea")
 colnames(tea)
 keep_columns <- c("price", "how", "frequency", "where")
-str(tea)
 # selecting the 'keep_columns' to create a new dataset
-tea_time <- select(tea, one_of(keep_columns))
+tea_time <- dplyr::select(tea, one_of(keep_columns))
 
 # looking at the summaries and structure of the data
 summary(tea)
