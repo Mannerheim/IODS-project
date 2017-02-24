@@ -1,30 +1,139 @@
----
-title: "chapter5"
-author: "Tuomas Soila"
-date: "20 2 2017"
-output: html_document
----
+# Chapter 5
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+## part 1
+The data used in this exercise "human" originates from the United Nations Development Programme. For more information you can visit http://hdr.undp.org/sites/default/files/hdr2015_technical_notes.pdf and http://hdr.undp.org/en/content/human-development-index-hdi to familiarise yourself with the data. 
+
+I got the "human" data from the web source. I then explored the structure and dimensions of it. You can see the column names (from the colnames(humman - print). I started with the file from the link provided to be sure that the data structure is correct. 
+So the variable names are as follows. 
+""Country" = Country name
+ Health and knowledge
+"GNI" = Gross National Income per capita
+"Life.Exp" = Life expectancy at birth
+"Edu.Exp" = Expected years of schooling 
+"Mat.Mor" = Maternal mortality ratio
+"Ado.Birth" = Adolescent birth rate
+ Empowerment:
+"Parli.F" = Percetange of female representatives in parliament
+"Edu2.F" = Proportion of females with at least secondary education
+"Edu2.M" = Proportion of males with at least secondary education
+"Labo.F" = Proportion of females in the labour force
+"Labo.M" " Proportion of males in the labour force
+
+"Edu2.FM" = Edu2.F / Edu2.M
+"Labo.FM" = Labo2.F / Labo2.M"
+
+```{r}
+human <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human2.txt", sep = "," , header=TRUE )
+
+str(human)
+# The data has the following variables:
+colnames(human)
+human
+
+
 ```
+## part 2
 
-## R Markdown
+I printed a graphical overview of the data with correlations and distributions. 
+```{r}
+library(GGally); library(dplyr);library(corrplot)
+?corrplot
+# visualising the 'human_' variables
+ggpairs(human)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+#summary of the variables:
+summary(human)
+# computing the correlation matrix and visualising it with corrplot
+cor(human)%>% corrplot()
+cor_matrix<-cor(human) %>% round(digits=2)
+cor_matrix
 ```
+ 
+From the distributions we can learn that edu2.fm, edu.exp, parli.f are quite normally distributed. labo.fm,gni,mat.mor,ado,birth are skewed towards the lower end of the spectrum and life.exp is skewed towards high end. 
+The correlations are as follows. 
+Strong positive correlation: 
+Edu2.FM (Edu2.F / Edu2.M) and edu.Exp(Expected years of schooling ), edu2.FM(Edu2.F / Edu2.M) and life.Exp(Life expectancy at birth), life.Exp(Life expectancy at birth) and GNI(Gross National Income per capita). 
+Strong negative correlation: 
+Ado.Birth (Adolescent birth rate) and Edu2.FM (Edu2.F / Edu2.M), Mat.Mor(Maternal mortality ratio) and Edu2.FM(Edu2.F / Edu2.M).
 
-## Including Plots
+And this can also be observed from the the last visualisation in, in which the dark blues indicate strong positive correlation and read strong negative correlation. 
 
-You can also embed plots, for example:
+## part 3 
+Perform principal component analysis (PCA) on the not standardized human data. Show the variability captured by the principal components. Draw a biplot displaying the observations by the first two principal components (PC1 coordinate in x-axis, PC2 coordinate in y-axis), along with arrows representing the original variables. (0-2 points)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+I produced principal component analysis (PCA) on the not standardised human dataset. I then continued to show the variability and drew a biplot of the PCA. 
+
+```{r}
+
+library(dplyr)
+
+# performing principal component analysis (with the SVD method)
+pca_human <- prcomp(human)
+summary(pca_human)
+# drawing a biplot of the principal component representation and the original variables
+biplot(pca_human, choices = 1:2, cex=c(0.8,1),col = c("grey40", "deeppink2"))
+
+
 ```
+## part 4
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+I then continued to standardise the human data and repeted the above analysis. 
+
+```{r}
+# standardising the variables
+human_std <- scale(human)
+
+# printing out summaries of the standardized variables
+summary(human_std)
+
+# performing principal component analysis (with the SVD method)
+pca_human <- prcomp(human_std)
+summary(pca_human)
+# draw a biplot of the principal component representation and the original variables
+biplot(pca_human, main = "",xlab ="women's possibilites in private life",ylab = "women's participation in public life", choices = 1:2, cex=c(0.8,1),col = c("grey40", "deeppink2")) 
+       title(main = "PCA analysis")
+
+```
+Results differ since PCA assumes that observations with larger variance are more important. In the first one e.g. the first principal component captures basically all the variance since GNI has so much larger values than other variables. But after scaling the data it only captures 54% and the second principal component still captured 16%. 
+
+
+## part 5
+The first principal component Could be described as women's possibilities in private life. These variables are represented by almost diagonal arrows along the x-axis. This tells us that these variables are strongly correlated towards the PC1 and the fact that some of the arrows point away from each other tells us that they are strongly negatively correlated. On the other hand the variables that are diagonally placed along the y-axis are have a small angle between them and the y-axis so they are strongly correlated to the PC2. 
+
+
+## part 6 
+I accessed the data "tea" from the FactorMiner library I chose randomly some of the variables of the data to be used in the MCA. I continued to do a MCA ( multiple correspondence analysis) on the data and then I plotted the MCA model in a biplot
+
+
+```{r}
+library(FactoMineR)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+data("tea")
+colnames(tea)
+keep_columns <- c("price", "how", "frequency", "where")
+str(tea)
+# selecting the 'keep_columns' to create a new dataset
+tea_time <- select(tea, one_of(keep_columns))
+
+# looking at the summaries and structure of the data
+summary(tea)
+gather(tea_time) %>% ggplot(aes(value)) + geom_bar()+theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) + facet_wrap("key", scales = "free") 
+str(tea_time)
+
+mca <- MCA(tea_time, graph = FALSE)
+
+# summary of the model
+summary(mca)
+
+# visualising MCA
+plot(mca, invisible=c("ind"),habillage = "quali")
+
+```
+From the MCA we can gather that that the first dimension covers almost  17.284% of the variance, second covers 13.901% and the third only 9.480%. 
+
+From the categorical variables table we can interpret that price variable is correlated to dim1 and dim2. pub is not really correlated to anything. how is correlated strongly to dim2 and dim1. frequency is correlated to dim3. Where variable is correlated to dim2 and dim1.
+
+I am calling dim1 the fanciness of the tea and dim2 and the tea drinking habits. From the biplot we can see a group whose tea drinking is fancy and occasional drink their tea in tea shop and they drink fancy tea and  Those who drink a lot of tea  and drink all kinds of tea. The rest is not that certain.
+
