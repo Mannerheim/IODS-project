@@ -1,0 +1,120 @@
+# Final Assignment
+
+## Authors infromation:
+  ---
+title: "Final Assignment"
+author: "Tuomas Soila"
+date: "6 3 2017"
+email: tuomas.soila@helsinki.fi
+output: html_document
+---
+
+•	Brief description of the "research question" you are exploring, possibly including your hypothesis (max 2 points)
+
+## Research question:
+This reserach will look into the Alcohol consumption dataset. First I will do k-means clustering on the data and then do Linear discriminant analysis on the clusters based on the k-means clustering. My hypothesis is that parents education will have influence on the clusters.  
+
+##part 1 
+Reading the file and printing the column names and glimpsing the data. 
+```{r}
+alc <- read.table("/Users/Tuomassoila/IODS-project/data/alc_use_final_assignment.txt", sep = "," , header=TRUE)
+colnames(alc)
+glimpse(alc)
+
+```
+##part 3
+
+•	Visually clear and interesting explorations of the variables of interest in the data, from the point of view of your research question. Include interpretations of the distributions and relationships of the variables. Use captions to draw the reader’s focus on the interesting parts of your tables and graphics. (max 8 points)
+
+I produced visual and numerical explorations of the variables. 
+
+```{r}
+library(FactoMineR)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(corrplot)
+library(GGally)
+#modifying the data to observe only the numerical variables
+keep_columns <- c("absences", "Dalc","Walc", "goout", "freetime","famrel", "failures", "studytime", "traveltime", "Fedu", "Medu", "age","G3")
+alc_lda <- dplyr::select(alc, one_of(keep_columns))
+#producing distributions as barplots for all variables
+gather(alc_lda) %>% ggplot(aes(value)) + geom_bar()+theme(axis.text.x = element_text(angle = 45, hjust= 1, size = 8)) + facet_wrap("key",scales = "free")
+
+#producing a correlation matrix of the variables. 
+cor_matrix<-cor(alc_lda) %>% round(digits=2)
+cor_matrix
+```
+Most of the variables except for age are,goout,freetime,studytime,famrel not really normally distributed. Male and female average grades are quite same. For correlations there are not many quite obvious correlations. Failures is (-0.37) quite strongly negatively correlated with the finald grade. And not surprisingly alcohol use is correlated with going out. Also there is -0.26 correlation between studytime and weekend alcohol use. Also mother's and father's education levels are correlated strongly with 0.6. Mother's education has a positive correlation with final grade (0.24). 
+
+
+
+## Part 3 
+Brief description of the method
+
+I am using  k-means clustering and linear discriminant analysis and linear regression analysis. Linear discriminant analysis is a classification method that finds linear combination to divide the target variable. The target variable can be categorical or binary. The methods is closely linked to other dimensionality reduction methods and also regression analysis. K-means clustering is a method which aims to create clusters for n observations by allocating observations into clusters based on the nearest mean. 
+
+## Part 4
+•	Presentation of the results of your analysis including visualizations and summaries and a thorough interpretation of the results including a validation analysis of the method. (max 16 points)
+
+I first calculated the euclidian distance from the data. Then calculated the total sum of squares and visualised the results. I then continued to run the k-means clustering algorithm on 3 centers since the steepest change is between 2 and 3. I plotted the pairwise comparisons. Then I fitted the Linear discriminant analysis with the k-means clusters as the target variable and other variables as predictory variables. Then I plotted the whole thing with variables as arrows. 
+
+```{r}
+
+dist_eu <- dist(alc_lda)
+#adding the max number of clusters first 15 and then 2 as this was the optimal. 
+k_max <- 15
+# calculating the total with sum of squares 
+twcss <- sapply(1:k_max, function(k){kmeans(dist_eu, k)$tot.withinss})
+
+# visualising the results 
+plot(1:k_max, twcss, type='b')
+
+# running the k-means clustering
+km2 <-kmeans(dist_eu, centers = 3)
+
+#plotting the alc dataset with clusters
+pairs(alc_lda, col = km2$cluster)
+
+lda.fit <- lda(km2$cluster ~ ., data = alc_lda)
+lda.fit
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+
+plot(lda.fit, dimen = 3, col = km2$cluster, pch = km2$cluster)
+lda.arrows(lda.fit, myscale = 1)
+```
+From the matrix we can gather that absences and grades (G3) seem to be useful on disrciminating the clusters. 
+
+The LDA model covers 96% of the variance between groups.  
+
+In the LDA biplot we have the classes in different colour and the variables in the middle. The direction and length of the arrow displays how the variable impacts the model and these are based on the coefficients.
+
+In the LDA coefficients we can see that Absences is the most influential linear discriminant. 
+In the biplot we can observe three clearly separate clusters. 
+
+
+
+
+
+## Part 5
+
+•	Conclusions and discussion (max 2 points)
+
+I have now performed k-means clustering and Linear discriminant analysis on the alcohol consumption dataset. 
+
+With the K-means clustering three clusters were found in the data. From plotting this I concluded that absences would be a good variable to use to identify clusters. 
+
+Then I did Linear discriminant analysis on the k-means clusters, fro which it can be gathered that absences was a good discriminating variable with the value ( -0.325201542). In the biplot three clusters we clearly visible. 
+
+
+## Part 6
+•	An ‘abstract’ at the beginning of the page with a summary of your analysis (max 2 points)
+Then I produced the fitted logistic regression model with the variables chosen earlier. 
